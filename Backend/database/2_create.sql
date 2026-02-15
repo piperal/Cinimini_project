@@ -1,231 +1,67 @@
 -- SIIA TULEB PÄRAST VERTABELO SQL EXPORT LINES (ENNE SEDA EI TASU PUUTUDA)
--- Created by Vertabelo (http://vertabelo.com)
--- Last modification date: 2025-05-16 13:24:41.97
+-- Created by Redgate Data Modeler (https://datamodeler.redgate-platform.com)
+-- Last modification date: 2026-02-15 15:55:21.217
 
 -- tables
--- Table: keyword
-CREATE TABLE keyword (
-                        id serial  NOT NULL,
-                        location_id int  NOT NULL,
-                        keyword varchar(255)  NOT NULL,
-                        CONSTRAINT keyword_pk PRIMARY KEY (id)
-);
-
--- Table: county
-CREATE TABLE county (
-                        id serial NOT NULL,
-                        name varchar(50) NOT NULL,
-                        longfield numeric(9,6) NOT NULL,
-                        latfield numeric(9,6) NOT NULL,
-                        zoomlevel integer NOT NULL,
-                        CONSTRAINT county_pk PRIMARY KEY (id)
+-- Table: category
+CREATE TABLE category (
+                          id bigserial  NOT NULL,
+                          name varchar(100)  NOT NULL,
+                          description varchar(100)  NOT NULL,
+                          is_active boolean  NOT NULL,
+                          CONSTRAINT category_pk PRIMARY KEY (id)
 );
 
 -- Table: game
 CREATE TABLE game (
-                      id serial  NOT NULL,
-                      location_id int  NOT NULL,
-                      user_id int  NOT NULL,
-                      start_time timestamp  NULL,
-                      end_time timestamp  NULL,
-                      status char(2)  NOT NULL,
-                      complete_date date  NULL,
-                      hints_used int NOT NULL,
-                      points int  NOT NULL,
+                      id bigserial  NOT NULL,
+                      name varchar(50)  NOT NULL,
+                      category_id bigint  NOT NULL,
+                      description varchar(150)  NOT NULL,
+                      questions varchar(500)  NULL,
+                      is_active boolean  NOT NULL,
                       CONSTRAINT game_pk PRIMARY KEY (id)
 );
 
--- Table: game_hint
-CREATE TABLE game_hint (
-                           id serial  NOT NULL,
-                           game_id int  NOT NULL,
-                           hint_id int  NOT NULL,
-                           CONSTRAINT game_hint_pk PRIMARY KEY (id)
+-- Table: game_step
+CREATE TABLE game_step (
+                           id bigserial  NOT NULL,
+                           game_id bigint  NOT NULL,
+                           step_discussion varchar(200)  NULL,
+                           step_order int  NOT NULL,
+                           CONSTRAINT game_step_pk PRIMARY KEY (id)
 );
 
--- Table: hint
-CREATE TABLE hint (
-                      id serial  NOT NULL,
-                      location_id int  NOT NULL,
-                      hint varchar(1000)  NOT NULL,
-                      CONSTRAINT hint_pk PRIMARY KEY (id)
-);
-
--- Table: location
-CREATE TABLE location (
-                          id serial  NOT NULL,
-                          user_id int  NOT NULL,
-                          county_id int  NOT NULL,
-                          name varchar(255)  NOT NULL,
-                          longfield decimal(18,15)  NULL,
-                          latfield decimal(18,15)  NULL,
-                          zoomlevel Int NOT NULL ,
-                          status char(1)  NOT NULL,
-                          teaser varchar(1500)  NOT NULL,
-                          extended_info varchar(4500)  NOT NULL,
-                          question varchar(1000)  NOT NULL,
-                          answer varchar(1000)  NOT NULL,
-                          date_added date  NOT NULL,
-                          CONSTRAINT location_pk PRIMARY KEY (id)
-);
-
--- Table: location_image
-CREATE TABLE location_image (
-                                id serial  NOT NULL,
-                                location_id int  NOT NULL,
-                                image_data bytea  NOT NULL,
-                                sequence int  NOT NULL,
-                                CONSTRAINT location_image_pk PRIMARY KEY (id)
-);
-
--- Table: reply
-CREATE TABLE reply (
-                       id serial  NOT NULL,
-                       user_id int  NOT NULL,
-                       review_id int  NOT NULL,
-                       comment varchar(255)  NOT NULL,
-                       date_added date  NOT NULL,
-                       CONSTRAINT reply_pk PRIMARY KEY (id)
-);
-
--- Table: review
-CREATE TABLE review (
-                        id serial  NOT NULL,
-                        user_id int  NOT NULL,
-                        location_id int  NOT NULL,
-                        rating int  NOT NULL,
-                        comment varchar(255)  NOT NULL,
-                        date_added date  NOT NULL,
-                        CONSTRAINT review_pk PRIMARY KEY (id)
-);
-
--- Table: role
-CREATE TABLE role (
-                      id serial  NOT NULL,
-                      name varchar(255)  NOT NULL,
-                      CONSTRAINT role_pk PRIMARY KEY (id)
-);
-
--- Table: user
-CREATE TABLE "user" (
-                        id serial  NOT NULL,
-                        role_id int  NOT NULL,
-                        username varchar(20)  NOT NULL,
-                        password varchar(20)  NOT NULL,
-                        email varchar(255)  NOT NULL,
-                        status char(1)  NOT NULL,
-                        CONSTRAINT user_pk PRIMARY KEY (id)
+-- Table: media
+CREATE TABLE media (
+                       id bigserial  NOT NULL,
+                       game_step_id bigint  NOT NULL,
+                       media_type varchar(50)  NOT NULL,
+                       file_url varchar(200)  NOT NULL,
+                       CONSTRAINT media_pk PRIMARY KEY (id)
 );
 
 -- foreign keys
--- Reference: location_image_location (table: location_image)
-ALTER TABLE location_image ADD CONSTRAINT location_image_location
-    FOREIGN KEY (location_id)
-        REFERENCES location (id)
+-- Reference: game_category (table: game)
+ALTER TABLE game ADD CONSTRAINT game_category
+    FOREIGN KEY (category_id)
+        REFERENCES category (id)
         NOT DEFERRABLE
             INITIALLY IMMEDIATE
 ;
 
--- Reference: keyword_location (table: keyword)
-ALTER TABLE keyword ADD CONSTRAINT keyword_location
-    FOREIGN KEY (location_id)
-        REFERENCES location (id)
-        NOT DEFERRABLE
-            INITIALLY IMMEDIATE
-;
-
--- Reference: game_hint_game (table: game_hint)
-ALTER TABLE game_hint ADD CONSTRAINT game_hint_game
+-- Reference: game_step_game (table: game_step)
+ALTER TABLE game_step ADD CONSTRAINT game_step_game
     FOREIGN KEY (game_id)
         REFERENCES game (id)
         NOT DEFERRABLE
             INITIALLY IMMEDIATE
 ;
 
--- Reference: game_hint_hint (table: game_hint)
-ALTER TABLE game_hint ADD CONSTRAINT game_hint_hint
-    FOREIGN KEY (hint_id)
-        REFERENCES hint (id)
-        NOT DEFERRABLE
-            INITIALLY IMMEDIATE
-;
-
--- Reference: hint_location (table: hint)
-ALTER TABLE hint ADD CONSTRAINT hint_location
-    FOREIGN KEY (location_id)
-        REFERENCES location (id)
-        NOT DEFERRABLE
-            INITIALLY IMMEDIATE
-;
-
--- Reference: game_location (table: game)
-ALTER TABLE game ADD CONSTRAINT game_location
-    FOREIGN KEY (location_id)
-        REFERENCES location (id)
-        NOT DEFERRABLE
-            INITIALLY IMMEDIATE
-;
-
--- Reference: game_user (table: game)
-ALTER TABLE game ADD CONSTRAINT game_user
-    FOREIGN KEY (user_id)
-        REFERENCES "user" (id)
-        NOT DEFERRABLE
-            INITIALLY IMMEDIATE
-;
-
--- Reference: location_county (table: location)
-ALTER TABLE location ADD CONSTRAINT location_county
-    FOREIGN KEY (county_id)
-        REFERENCES county (id)
-        NOT DEFERRABLE
-            INITIALLY IMMEDIATE
-;
-
--- Reference: location_user (table: location)
-ALTER TABLE location ADD CONSTRAINT location_user
-    FOREIGN KEY (user_id)
-        REFERENCES "user" (id)
-        NOT DEFERRABLE
-            INITIALLY IMMEDIATE
-;
-
--- Reference: reply_review (table: reply)
-ALTER TABLE reply ADD CONSTRAINT reply_review
-    FOREIGN KEY (review_id)
-        REFERENCES review (id)
-        NOT DEFERRABLE
-            INITIALLY IMMEDIATE
-;
-
--- Reference: reply_user (table: reply)
-ALTER TABLE reply ADD CONSTRAINT reply_user
-    FOREIGN KEY (user_id)
-        REFERENCES "user" (id)
-        NOT DEFERRABLE
-            INITIALLY IMMEDIATE
-;
-
--- Reference: review_location (table: review)
-ALTER TABLE review ADD CONSTRAINT review_location
-    FOREIGN KEY (location_id)
-        REFERENCES location (id)
-        NOT DEFERRABLE
-            INITIALLY IMMEDIATE
-;
-
--- Reference: review_user (table: review)
-ALTER TABLE review ADD CONSTRAINT review_user
-    FOREIGN KEY (user_id)
-        REFERENCES "user" (id)
-        NOT DEFERRABLE
-            INITIALLY IMMEDIATE
-;
-
--- Reference: user_role (table: user)
-ALTER TABLE "user" ADD CONSTRAINT user_role
-    FOREIGN KEY (role_id)
-        REFERENCES role (id)
+-- Reference: media_game_step (table: media)
+ALTER TABLE media ADD CONSTRAINT media_game_step
+    FOREIGN KEY (game_step_id)
+        REFERENCES game_step (id)
         NOT DEFERRABLE
             INITIALLY IMMEDIATE
 ;
